@@ -33,6 +33,20 @@ function handleConnection(socket) {
 }
 wss.on("connection", handleConnection)
 */
-wss.on("connection", (socket)=>{console.log(socket);});
+// wss event listen
+// wss.on("connection", (socket)=>{console.log(socket);});
+wss.on("connection", (socket) => {
+    console.log("Connected to Browser ✅");
+    // socket 또한 front에서 보내는 event에 대한 다앙한 Listener들이 존재한다.
+    // close, message 등
+    // socket event 'close'
+    socket.on("close", () => console.log("Disconnected from the Browser ❌"));
+    // socket event 'message'
+    socket.on("message", message => {
+        console.log(message.toString('utf8'));
+    });
+    // front로 message를 보내는 socket method
+    socket.send("hello!!!");
+  });
 
 server.listen(3000, handleListen);
