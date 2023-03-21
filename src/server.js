@@ -1,3 +1,4 @@
+
 import http from "http";
 import WebSocket from "ws";
 import express from "express";
@@ -35,18 +36,39 @@ wss.on("connection", handleConnection)
 */
 // wss event listen
 // wss.on("connection", (socket)=>{console.log(socket);});
+
+// 접속한 모든 브라우저에 메세지를 전송하기위한 임시 데이터 베이스
+const sockets = [];
+
 wss.on("connection", (socket) => {
+    // 접속한 브라우저 저장
+    sockets.push(socket);
+    // socket 자체도 object 형태로 접근 가능
+    socket["nickname"] = "Anon";
     console.log("Connected to Browser ✅");
     // socket 또한 front에서 보내는 event에 대한 다앙한 Listener들이 존재한다.
     // close, message 등
     // socket event 'close'
     socket.on("close", () => console.log("Disconnected from the Browser ❌"));
     // socket event 'message'
-    socket.on("message", message => {
-        console.log(message.toString('utf8'));
+    socket.on("message", (msg) => {
+        // 문자열로 전송받은 데이터 object로 변환
+      const message = JSON.parse(msg);
+      // msg onject의 메세지 종류 별로 전송하는 데이터 달리하기
+      switch (message.type) {
+        case "new_message":
+          sockets.forEach((aSocket) =>
+            aSocket.send(`${socket.nickname}: ${message.payload}`)
+          );
+          break;
+        case "nickname":
+          socket["nickname"] = message.payload;
+          break;
+      }
     });
     // front로 message를 보내는 socket method
-    socket.send("hello!!!");
+    // socket.send("hello!!!");
   });
 
+// express, http 서버 listen
 server.listen(3000, handleListen);
