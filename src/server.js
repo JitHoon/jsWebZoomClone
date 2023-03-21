@@ -25,4 +25,14 @@ const server = http.createServer(app);
 // http protocol가 가능한 PORT 위에 websocket protocol 서버 추가 생성
 const wss = new WebSocket.Server({ server });
 
+// js와 유사하게 ws 또한 event(on method, socket) 들을 가지고 있으며 
+// vanilla js 문법과 유사하게 handling 할 수 있다.
+/*
+function handleConnection(socket) {
+    console.log(socket)
+}
+wss.on("connection", handleConnection)
+*/
+wss.on("connection", (socket)=>{console.log(socket);});
+
 server.listen(3000, handleListen);
