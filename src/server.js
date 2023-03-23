@@ -14,6 +14,26 @@ app.get("/*", (_, res) => res.redirect("/"));
 const httpServer = http.createServer(app);
 const wsServer = new Server(httpServer);
 
+// map(rooms)과 adapter 개념을 사용하여 공개방만 찾는 함수
+function publicRooms() {
+  const publicRooms = [];
+	// const { rooms, sids } = wsServer.sockets.adapter;
+  const {
+    sockets: {
+      adapter: { sids, rooms },
+    },
+  } = wsServer;
+	// sids에는 개인방, rooms에는 개인방,공개방 다있음.
+	// rooms가 sids를 포함함 (rooms > sids)
+	// 그래서 공개방만 얻고 싶을 때는 rooms에서 sids를 빼면 됨
+  rooms.forEach((value, key) => {
+    if (sids.get(key) === undefined) {
+      publicRooms.push(key);
+    }
+  });
+  return publicRooms;
+}
+
 // connection socket.io server in back-end
 wsServer.on("connection", (socket) => {
   // socket은 object이다.
