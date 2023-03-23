@@ -16,7 +16,16 @@ const wsServer = new Server(httpServer);
 
 // connection socket.io server in back-end
 wsServer.on("connection", (socket) => {
-  console.log(socket);
+  // on은 addEventListener이라고 생각
+  // socket.on() 을 통해 아래와 같은 정보를 가져올 수 있다. ((JSON.parse() 생략 가능)
+  // socket.on(개발자가 지정한 event 이름, object, function)
+  // (msg, done, ... ) n개의 argument를 받을 수 있다.
+  socket.on("enter_room", (msg, done) => {
+    console.log(msg);
+    setTimeout(() => {
+      done();
+    }, 10000);
+  });
 });
 
 // listen sever
