@@ -5,10 +5,20 @@ const socket = io();
 const enterRoom = document.getElementById("enterRoom");
 const form = enterRoom.querySelector("form");
 
-// backend socket.on() 에서 호출하는 마지막 argument
-function backendDone(msg) {
-  console.log(`The backend says: `, msg);
+// get html elelment #room
+const room = document.getElementById("room");
+
+room.hidden = true;
+
+let roomName;
+
+function showRoom() {
+  enterRoom.hidden = true;
+  room.hidden = false;
+  const h3 = room.querySelector("h3");
+  h3.innerText = `Room ${roomName}`;
 }
+
 // "enter_room" event 실행 함수
 function handleEnterRoom(event) {
   event.preventDefault();
@@ -21,8 +31,9 @@ function handleEnterRoom(event) {
   socket.emit(
     "enter_room", 
     input.value, 
-    backendDone
+    showRoom
   );
+  roomName = input.value;
   input.value = "";
 }
 // enterRoom btn EventListener
