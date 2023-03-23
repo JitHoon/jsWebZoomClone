@@ -55,11 +55,17 @@ wsServer.on("connection", (socket) => {
     done();
     // 모든 방으로 welcome event를 frontend로 전송
     socket.to(roomName).emit("welcome", socket.nickname);
+    // 모든 sockets으로 room_change event를 frontend로 전송
+    wsServer.sockets.emit("room_change", publicRooms());
   });
-  // 사용자의 서버가 종료 되었음을 알려주는 method
+  // 사용자의 서버가 종료 되었음을 알려주는 method (종료 직전에 동작)
   socket.on("disconnecting", () => {
     // 모든 방으로 welcome event를 frontend로 전송
     socket.rooms.forEach((room) => socket.to(room).emit("bye", socket.nickname));
+  });
+  // 사용자의 서버가 종료 되었음을 알려주는 method (종료 후 동작)
+  socket.on("disconnect", () => {
+    wsServer.sockets.emit("room_change", publicRooms());
   });
   // frontend에서 new_message event를 listen
   socket.on("new_message", (msg, room, done) => {

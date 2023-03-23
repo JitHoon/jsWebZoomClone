@@ -86,3 +86,20 @@ socket.on("bye", (user) => {
 });
 // backend에서 전송된 new_message event 받아 addMessage 함수 실행
 socket.on("new_message", addMessage);
+// backend에서 전송된 room_change event 받아 addMessage 함수 실행
+socket.on("room_change", (rooms) => {
+  // Open Rooms 들을 나열할 의 html element
+  const roomList = enterRoom.querySelector("ul");
+  // room_change 될 때마다 HTML 내용 새롭게 생성
+  roomList.innerHTML = "";
+  // rooms가 빈 array 일 때 event가 동작하도록 해주는 코드
+  if (rooms.length === 0) {
+    return;
+  }
+  // 받아온 publicRooms()의 return 값 publicRooms array 나열
+  rooms.forEach((room) => {
+    const li = document.createElement("li");
+    li.innerText = room;
+    roomList.append(li);
+  });
+});
