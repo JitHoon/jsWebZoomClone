@@ -22,13 +22,29 @@ wsServer.on("connection", (socket) => {
   // (msg, done, ... ) n개의 argument를 받을 수 있다.
   socket.on("enter_room", (roomName, done) => {
     // socket.onAny() 어떤 event든 가져올 수 있는 method
-    socket.onAny((event) => {
-      console.log(`Socket Event: ${event}`);
+    socket.onAny((eventName) => {
+      console.log(`Socket Event: ${eventName}`);
     });
     // socket.join() room 생성 및 room으로 들어가는 method
     socket.join(roomName);
     console.log(socket.rooms)
     // front에서의 showRoom 함수 실행
+    done();
+    // 모든 방으로 welcome event를 frontend로 전송
+    socket.to(roomName).emit("welcome");
+  });
+  // 사용자의 서버가 종료 되었음을 알려주는 method
+  socket.on("disconnecting", () => {
+    // 모든 방으로 welcome event를 frontend로 전송
+    socket.rooms.forEach((room) => socket.to(room).emit("bye"));
+  });
+  // frontend에서 new_message event를 listen
+  socket.on("new_message", (msg, room, done) => {
+    // frontend에서 보낸 room으로 새로운 message 전달
+    // socket.to를 하는 경우는 발신자를 제외하고 전송
+    // 발신자를 포함하여 전송하려면 io.to를 (여기서는 wsServer.to)사용
+    socket.to(room).emit("new_message", msg);
+    // frontend 있는 마지막 함수 실행
     done();
   });
 });
