@@ -33,6 +33,10 @@ function publicRooms() {
   });
   return publicRooms;
 }
+// adapter.rooms에 있는 roomName의 user server id 개수를 가져옮
+function countUser(roomName) {
+  return wsServer.sockets.adapter.rooms.get(roomName)?.size;
+}
 
 // connection socket.io server in back-end
 wsServer.on("connection", (socket) => {
@@ -43,7 +47,8 @@ wsServer.on("connection", (socket) => {
   // socket.on(개발자가 지정한 event 이름, object, function)
   // (msg, done, ... ) n개의 argument를 받을 수 있다.
   socket.on("nickName", (nickName) => (socket["nickname"] = nickName));
-  socket.on("enter_room", (roomName, done) => {
+  socket.on("enter_room", (roomName, done) =>
+   {
     // socket.onAny() 어떤 event든 가져올 수 있는 method
     socket.onAny((eventName) => {
       console.log(`Socket Event: ${eventName}`);
@@ -52,16 +57,16 @@ wsServer.on("connection", (socket) => {
     socket.join(roomName);
     console.log(socket.rooms)
     // front에서의 showRoom 함수 실행
-    done();
+    done(countUser(roomName));
     // 모든 방으로 welcome event를 frontend로 전송
-    socket.to(roomName).emit("welcome", socket.nickname);
+    socket.to(roomName).emit("welcome", socket.nickname, countUser(roomName));
     // 모든 sockets으로 room_change event를 frontend로 전송
     wsServer.sockets.emit("room_change", publicRooms());
   });
   // 사용자의 서버가 종료 되었음을 알려주는 method (종료 직전에 동작)
   socket.on("disconnecting", () => {
     // 모든 방으로 welcome event를 frontend로 전송
-    socket.rooms.forEach((room) => socket.to(room).emit("bye", socket.nickname));
+    socket.rooms.forEach((room) => socket.to(room).emit("bye", socket.nickname, countUser(room) - 1));
   });
   // 사용자의 서버가 종료 되었음을 알려주는 method (종료 후 동작)
   socket.on("disconnect", () => {

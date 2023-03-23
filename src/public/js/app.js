@@ -35,12 +35,12 @@ function handleMessageSubmit(event) {
   input.value = "";
 }
 // room이 생성 되고 들어갔을 때 UI
-function showRoom() {
+function showRoom(count) {
   nickName.hidden = true;
   enterRoom.hidden = true;
   room.hidden = false;
   const h3 = room.querySelector("h3");
-  h3.innerText = `Room ${roomName}`;
+  h3.innerText = `Room ${roomName} (${count})`;
   // room안에서 새로운 message를 submit했을 떄 handleMessageSubmit 함수 실행
   const form = room.querySelector("form");
   form.addEventListener("submit", handleMessageSubmit);
@@ -77,11 +77,15 @@ nickName.addEventListener("submit", handleNickname);
 // enterRoom btn EventListener
 enterForm.addEventListener("submit", handleEnterRoom);
 // backend에서 전송된 welcome event 받아 addMessage 함수 실행
-socket.on("welcome", (user) => {
+socket.on("welcome", (user, newCount) => {
+  const h3 = room.querySelector("h3");
+  h3.innerText = `Room ${roomName} (${newCount})`;
   addMessage(`${user} arrived!`);
 });
 // backend에서 전송된 bye event 받아 addMessage 함수 실행
-socket.on("bye", (user) => {
+socket.on("bye", (user, newCount) => {
+  const h3 = room.querySelector("h3");
+  h3.innerText = `Room ${roomName} (${newCount})`;
   addMessage(`${user} left ㅠㅠ`);
 });
 // backend에서 전송된 new_message event 받아 addMessage 함수 실행
