@@ -16,10 +16,13 @@ const wsServer = new Server(httpServer);
 
 // connection socket.io server in back-end
 wsServer.on("connection", (socket) => {
+  // socket은 object이다.
+  socket["nickname"] = "Anon";
   // on은 addEventListener이라고 생각
   // socket.on() 을 통해 아래와 같은 정보를 가져올 수 있다. ((JSON.parse() 생략 가능)
   // socket.on(개발자가 지정한 event 이름, object, function)
   // (msg, done, ... ) n개의 argument를 받을 수 있다.
+  socket.on("nickName", (nickName) => (socket["nickname"] = nickName));
   socket.on("enter_room", (roomName, done) => {
     // socket.onAny() 어떤 event든 가져올 수 있는 method
     socket.onAny((eventName) => {
@@ -31,19 +34,19 @@ wsServer.on("connection", (socket) => {
     // front에서의 showRoom 함수 실행
     done();
     // 모든 방으로 welcome event를 frontend로 전송
-    socket.to(roomName).emit("welcome");
+    socket.to(roomName).emit("welcome", socket.nickname);
   });
   // 사용자의 서버가 종료 되었음을 알려주는 method
   socket.on("disconnecting", () => {
     // 모든 방으로 welcome event를 frontend로 전송
-    socket.rooms.forEach((room) => socket.to(room).emit("bye"));
+    socket.rooms.forEach((room) => socket.to(room).emit("bye", socket.nickname));
   });
   // frontend에서 new_message event를 listen
   socket.on("new_message", (msg, room, done) => {
     // frontend에서 보낸 room으로 새로운 message 전달
     // socket.to를 하는 경우는 발신자를 제외하고 전송
     // 발신자를 포함하여 전송하려면 io.to를 (여기서는 wsServer.to)사용
-    socket.to(room).emit("new_message", msg);
+    socket.to(room).emit("new_message", `${socket.nickname}: ${msg}`);
     // frontend 있는 마지막 함수 실행
     done();
   });

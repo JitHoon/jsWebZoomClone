@@ -1,9 +1,13 @@
 // connection socket.io server in front-end
 const socket = io();
 
+// get html elelment #nickName
+const nickName = document.getElementById("nickName");
+const nickNameForm = nickName.querySelector("form");
+
 // get html elelment #enterRoom
 const enterRoom = document.getElementById("enterRoom");
-const form = enterRoom.querySelector("form");
+const enterForm = enterRoom.querySelector("form");
 
 // get html elelment #room
 const room = document.getElementById("room");
@@ -11,6 +15,7 @@ const room = document.getElementById("room");
 room.hidden = true;
 
 let roomName;
+let userName;
 // 새로운 message 생성 UI
 function addMessage(message) {
   const ul = room.querySelector("ul");
@@ -31,6 +36,7 @@ function handleMessageSubmit(event) {
 }
 // room이 생성 되고 들어갔을 때 UI
 function showRoom() {
+  nickName.hidden = true;
   enterRoom.hidden = true;
   room.hidden = false;
   const h3 = room.querySelector("h3");
@@ -42,7 +48,7 @@ function showRoom() {
 // "enter_room" event 실행 함수
 function handleEnterRoom(event) {
   event.preventDefault();
-  const input = form.querySelector("input");
+  const input = enterForm.querySelector("input");
   // socket.emit() // emit : 방출하다.
   // argument1 : "개발자가 임의로 지은 event 이름"
   // argument2 : object (JSON.stringify() 생략)
@@ -56,15 +62,27 @@ function handleEnterRoom(event) {
   roomName = input.value;
   input.value = "";
 }
+function handleNickname(event) {
+  event.preventDefault();
+  const input = nickNameForm.querySelector("input");
+  socket.emit(
+    "nickName", 
+    input.value
+  );
+  userName = input.value;
+  input.value = "";
+}
+// nickName btn EventListener
+nickName.addEventListener("submit", handleNickname);
 // enterRoom btn EventListener
-form.addEventListener("submit", handleEnterRoom);
+enterForm.addEventListener("submit", handleEnterRoom);
 // backend에서 전송된 welcome event 받아 addMessage 함수 실행
-socket.on("welcome", () => {
-  addMessage("someone joined!");
+socket.on("welcome", (user) => {
+  addMessage(`${user} arrived!`);
 });
 // backend에서 전송된 bye event 받아 addMessage 함수 실행
-socket.on("bye", () => {
-  addMessage("someone left ㅠㅠ");
+socket.on("bye", (user) => {
+  addMessage(`${user} left ㅠㅠ`);
 });
 // backend에서 전송된 new_message event 받아 addMessage 함수 실행
 socket.on("new_message", addMessage);
