@@ -20,10 +20,12 @@ wsServer.on("connection", (socket) => {
   // socket.on() 을 통해 아래와 같은 정보를 가져올 수 있다. ((JSON.parse() 생략 가능)
   // socket.on(개발자가 지정한 event 이름, object, function)
   // (msg, done, ... ) n개의 argument를 받을 수 있다.
-  socket.on("enter_room", (msg, done) => {
-    console.log(msg);
+  socket.on("enter_room", (roomName, done) => {
+    console.log(roomName);
+    // backend에서 front에 있는 함수를 실행 시킬 수 있다!
+    // front 함수로 argument 또한 보낼 수 있다!
     setTimeout(() => {
-      done();
+    done("hello from the backend");
     }, 10000);
   });
 });
