@@ -1,6 +1,8 @@
 import express from "express";
 import http from "http";
 import { Server } from "socket.io";
+// connect admin UI
+import { instrument } from "@socket.io/admin-ui";
 
 // express
 const app = express();
@@ -11,8 +13,17 @@ app.get("/", (_, res) => res.render("home"));
 app.get("/*", (_, res) => res.redirect("/"));
 
 // create http, socket.io server
+// connect admin UI
 const httpServer = http.createServer(app);
-const wsServer = new Server(httpServer);
+const wsServer = new Server(httpServer, {
+  cors: {
+    origin: ["https://admin.socket.io"],
+    credentials: true,
+  },
+});
+instrument(wsServer, {
+  auth: false,
+});
 
 // map(rooms)과 adapter 개념을 사용하여 공개방만 찾는 함수
 function publicRooms() {
