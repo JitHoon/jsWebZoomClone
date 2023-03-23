@@ -3,6 +3,7 @@ const socket = io();
 
 // get html elelment #nickName
 const nickName = document.getElementById("nickName");
+const h3 = nickName.querySelector("h3");
 const nickNameForm = nickName.querySelector("form");
 
 // get html elelment #enterRoom
@@ -62,14 +63,32 @@ function handleEnterRoom(event) {
   roomName = input.value;
   input.value = "";
 }
+// changeNickname UI
+function changeNickname(event) {
+  event.preventDefault();
+  h3.hidden = true;
+  event.target.hidden = true;
+  nickNameForm.hidden = false;
+}
+// Nickname event backend로 전송, 
 function handleNickname(event) {
   event.preventDefault();
+  nickNameForm.hidden = true;
   const input = nickNameForm.querySelector("input");
   socket.emit(
     "nickName", 
     input.value
   );
   userName = input.value;
+
+  // userName 보여주기 및 수정 btn 생성 및 click event listen
+  h3.innerText = userName;
+  const changeBtn = document.createElement("button");
+  changeBtn.innerText = "Change";
+  nickName.appendChild(changeBtn);
+  h3.hidden = false;
+  changeBtn.hidden = false;
+  changeBtn.addEventListener("click", changeNickname);
   input.value = "";
 }
 // nickName btn EventListener
