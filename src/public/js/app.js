@@ -136,19 +136,27 @@ const camerasSelect = document.getElementById("cameras");
 let myStream;
 let muted = false;
 let cameraOff = false;
-// 유저의 카메라 종류 가져오기
+// 유저의 카메라 종류 가져오기 (처음 입장 했을 때만 동작)
 async function getCameras() {
   try {
+    // user가 '보유한' 모든 device 가져오기
     // navigator.mediaDevices : https://developer.mozilla.org/ko/docs/Web/API/Navigator/mediaDevices
     // navigator.mediaDevices 객체 가져오기 https://developer.mozilla.org/ko/docs/Web/API/MediaDevices
     const devices = await navigator.mediaDevices.enumerateDevices();
-    // enumerateDevices() 를 통해 가져언 device.kind 중에서 videoinput만 filter하여 반환
+    // enumerateDevices() 를 통해 가져온 device.kind 중에서 videoinput (camera device)만 filter하여 반환
     const cameras = devices.filter((device) => device.kind === "videoinput");
-    // html option element를 생성하여 camera.deviceId dhk camera.label 보여주기
+    // 현재 '사용중인' (myStream) device중 video track에서 가장 상위에 있는 camera 정보가 현재 사용 중인 카메라
+    const currentCamera = myStream.getVideoTracks()[0];
+    // html option element를 생성하여 camera.deviceId 와 camera.label 보여주기
     cameras.forEach((camera) => {
       const option = document.createElement("option");
       option.value = camera.deviceId;
       option.innerText = camera.label;
+      // '사용중인' 카메라와 '보유한' 카메라의 이름이 동일 할 때 해당 camera를 선택했다고 설정 option.selected = true;
+      if (currentCamera.label === camera.label) {
+        // <option> 태그의 selected 속성은 페이지가 로드될 때 옵션이 미리 선택된다.
+        option.selected = true;
+      }
       camerasSelect.appendChild(option);
     });
   } catch (e) {
@@ -156,18 +164,34 @@ async function getCameras() {
   }
 }
 // 유저의 비디오 및 마이크 가져오기
-async function getMedia() {
+async function getMedia(deviceId) {
+  // .getUserMedia(의 초기 constrain 정보)
+  const initialConstrains = {
+    audio: true,
+    // 셀프 카메라 모드가 기본
+    video: { facingMode: "user" },
+  };
+  // .getUserMedia(deviceId를 받았다면 새로운 constrain 정보 생성)
+  const newConstraints = {
+    audio: true,
+    video: { deviceId: { exact: deviceId } },
+  };
   try {
     // navigator.mediaDevices : https://developer.mozilla.org/ko/docs/Web/API/Navigator/mediaDevices
     // navigator.mediaDevices 객체 가져오기 https://developer.mozilla.org/ko/docs/Web/API/MediaDevices
-    myStream = await navigator.mediaDevices.getUserMedia({
-      // 가져올 media 설정
-      video: true,
-      audio: true,
-    });
+    // camera를 가져오는 것은 한번 이지만 변경된 camera 정보는 
+    // newConstraints에서 갱신되어 myStream element에 paint 되므로
+    //  getCameras가 한번만 실행되어도 상관 없다.
+    myStream = await navigator.mediaDevices.getUserMedia(
+      deviceId ? newConstraints : initialConstrains
+    );
     // html에 media 보여주기
     myFace.srcObject = myStream;
-    await getCameras();
+    // deviceId가 없을 때(처음 입장했을 때)만 어떤 종류의 카메라 있는지 확인
+    // getCameras 로 option elements들 생성
+    if (!deviceId) {
+      await getCameras();
+    }
   } catch (e) {
     console.log(e);
   }
@@ -201,6 +225,18 @@ function handleCameraClick() {
     cameraOff = true;
   }
 }
+// 유저가 카메라 선택 시 (select element의 input event) getMedia 동작
+async function handleCameraChange() {
+  // 카메라 변경시에도 소리 상태 유지
+  if (muted) {
+    myStream.getAudioTracks().forEach((track) => (track.enabled = false));
+  } else {
+    myStream.getAudioTracks().forEach((track) => (track.enabled = true));
+  }
+  await getMedia(camerasSelect.value);
+}
 // 카메라 on off, 음소거 on, off click event
 muteBtn.addEventListener("click", handleMuteClick);
 cameraBtn.addEventListener("click", handleCameraClick);
+// select html element 의 event는 input
+camerasSelect.addEventListener("input", handleCameraChange);
