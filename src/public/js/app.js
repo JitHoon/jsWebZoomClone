@@ -131,21 +131,43 @@ socket.on("room_change", (rooms) => {
 const myFace = document.getElementById("myFace");
 const muteBtn = document.getElementById("mute");
 const cameraBtn = document.getElementById("camera");
+const camerasSelect = document.getElementById("cameras");
 // 유저마다 navigator.mediaDevices.getUserMedia 값이 다르므로 let
 let myStream;
 let muted = false;
 let cameraOff = false;
+// 유저의 카메라 종류 가져오기
+async function getCameras() {
+  try {
+    // navigator.mediaDevices : https://developer.mozilla.org/ko/docs/Web/API/Navigator/mediaDevices
+    // navigator.mediaDevices 객체 가져오기 https://developer.mozilla.org/ko/docs/Web/API/MediaDevices
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    // enumerateDevices() 를 통해 가져언 device.kind 중에서 videoinput만 filter하여 반환
+    const cameras = devices.filter((device) => device.kind === "videoinput");
+    // html option element를 생성하여 camera.deviceId dhk camera.label 보여주기
+    cameras.forEach((camera) => {
+      const option = document.createElement("option");
+      option.value = camera.deviceId;
+      option.innerText = camera.label;
+      camerasSelect.appendChild(option);
+    });
+  } catch (e) {
+    console.log(e);
+  }
+}
 // 유저의 비디오 및 마이크 가져오기
 async function getMedia() {
   try {
-    // https://developer.mozilla.org/ko/docs/Web/API/Navigator/mediaDevices
+    // navigator.mediaDevices : https://developer.mozilla.org/ko/docs/Web/API/Navigator/mediaDevices
+    // navigator.mediaDevices 객체 가져오기 https://developer.mozilla.org/ko/docs/Web/API/MediaDevices
     myStream = await navigator.mediaDevices.getUserMedia({
       // 가져올 media 설정
-      audio: true,
       video: true,
+      audio: true,
     });
     // html에 media 보여주기
     myFace.srcObject = myStream;
+    await getCameras();
   } catch (e) {
     console.log(e);
   }
@@ -153,6 +175,10 @@ async function getMedia() {
 getMedia();
 // 음소가 on off hadle
 function handleMuteClick() {
+  // .getUserMedia() 를 통해 가져온 vaudio의 track을 가져와 enabled 속성 변경
+  myStream
+    .getAudioTracks()
+    .forEach((track) => (track.enabled = !track.enabled));
   if (!muted) {
     muteBtn.innerText = "Unmute";
     muted = true;
@@ -163,6 +189,10 @@ function handleMuteClick() {
 }
 // 카메라 on off hadle
 function handleCameraClick() {
+  // .getUserMedia() 를 통해 가져온 video의 각 track을 가져와 enabled 속성 변경
+  myStream
+    .getVideoTracks()
+    .forEach((track) => (track.enabled = !track.enabled));
   if (cameraOff) {
     cameraBtn.innerText = "Turn Camera Off";
     cameraOff = false;
