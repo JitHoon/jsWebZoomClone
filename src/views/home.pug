@@ -27,5 +27,9 @@ html(lang="en")
                 form
                     input(placeholder="message", required, type="text")
                     button Send
+            div#myStream
+                video#myFace(autoplay,playsinline, muted, width="400", height="400")
+                button#mute Mute
+                button#camera Turn Camera Off
         script(src="/socket.io/socket.io.js")
         script(src="/public/js/app.js")

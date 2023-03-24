@@ -126,3 +126,51 @@ socket.on("room_change", (rooms) => {
     roomList.append(li);
   });
 });
+
+// Video code
+const myFace = document.getElementById("myFace");
+const muteBtn = document.getElementById("mute");
+const cameraBtn = document.getElementById("camera");
+// 유저마다 navigator.mediaDevices.getUserMedia 값이 다르므로 let
+let myStream;
+let muted = false;
+let cameraOff = false;
+// 유저의 비디오 및 마이크 가져오기
+async function getMedia() {
+  try {
+    // https://developer.mozilla.org/ko/docs/Web/API/Navigator/mediaDevices
+    myStream = await navigator.mediaDevices.getUserMedia({
+      // 가져올 media 설정
+      audio: true,
+      video: true,
+    });
+    // html에 media 보여주기
+    myFace.srcObject = myStream;
+  } catch (e) {
+    console.log(e);
+  }
+}
+getMedia();
+// 음소가 on off hadle
+function handleMuteClick() {
+  if (!muted) {
+    muteBtn.innerText = "Unmute";
+    muted = true;
+  } else {
+    muteBtn.innerText = "Mute";
+    muted = false;
+  }
+}
+// 카메라 on off hadle
+function handleCameraClick() {
+  if (cameraOff) {
+    cameraBtn.innerText = "Turn Camera Off";
+    cameraOff = false;
+  } else {
+    cameraBtn.innerText = "Turn Camera On";
+    cameraOff = true;
+  }
+}
+// 카메라 on off, 음소거 on, off click event
+muteBtn.addEventListener("click", handleMuteClick);
+cameraBtn.addEventListener("click", handleCameraClick);
