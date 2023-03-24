@@ -12,8 +12,11 @@ const enterForm = enterRoom.querySelector("form");
 
 // get html elelment #room
 const room = document.getElementById("room");
-
 room.hidden = true;
+
+// get html elelment #call (stream)
+const call = document.getElementById("call");
+call.hidden = true;
 
 let roomName;
 let userName;
@@ -40,6 +43,7 @@ function showRoom(count) {
   nickName.hidden = true;
   enterRoom.hidden = true;
   room.hidden = false;
+  call.hidden = false;
   const h3 = room.querySelector("h3");
   h3.innerText = `Room ${roomName} (${count})`;
   // room안에서 새로운 message를 submit했을 떄 handleMessageSubmit 함수 실행
