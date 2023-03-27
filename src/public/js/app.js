@@ -256,10 +256,18 @@ let myPeerConnection;
 // peer connection 생성
 function makeConnection() {
   myPeerConnection = new RTCPeerConnection();
+  // offer, answer 교환이 일어난 후 icecandidate event 시작
+  myPeerConnection.addEventListener("icecandidate", handleIce);
+  // offer, answer, icecandidate 교환이 일어난 후 addstream event 시작
+  myPeerConnection.addEventListener("addstream", handleAddStream);
 	// 기존 stream의 track data들을 peer connection에 전송
   myStream
     .getTracks()
     .forEach((track) => myPeerConnection.addTrack(track, myStream));
+}
+function handleIce(data) {
+  // sent candidate to server from peer A
+  socket.emit("ice", data.candidate, roomName);
 }
 // peer B
 // get offer event from server
@@ -276,3 +284,15 @@ socket.on("offer", async (offer) => {
 socket.on("answer", (answer) => {
   myPeerConnection.setRemoteDescription(answer);
 });
+// peer A, B
+// icecandidate event는 양방향으로 전송된다.
+// get ice candidate event from server
+socket.on("ice", (ice) => {
+  myPeerConnection.addIceCandidate(ice);
+});
+// peer A, B
+// icecandidate event는 양방향으로 전송된다.
+function handleAddStream(data) {
+  const peerFace = document.getElementById("peerFace");
+  peerFace.srcObject = data.stream;
+}

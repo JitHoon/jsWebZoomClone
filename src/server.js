@@ -96,7 +96,12 @@ wsServer.on("connection", (socket) => {
     socket.to(roomName).emit("offer", offer);
   });
   socket.on("answer", (answer, roomName) => {
+    // send answer to peer A from back
     socket.to(roomName).emit("answer", answer);
+  });
+  socket.on("ice", (ice, roomName) => {
+    // send answer to peer B from back
+    socket.to(roomName).emit("ice", ice);
   });
 });
 
