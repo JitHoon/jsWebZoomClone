@@ -58,7 +58,7 @@ wsServer.on("connection", (socket) => {
   // socket.on(개발자가 지정한 event 이름, object, function)
   // (msg, done, ... ) n개의 argument를 받을 수 있다.
   socket.on("nickName", (nickName) => (socket["nickname"] = nickName));
-  socket.on("enter_room", (roomName, done) =>
+  socket.on("enter_room", (roomName) =>
    {
     // socket.onAny() 어떤 event든 가져올 수 있는 method
     socket.onAny((eventName) => {
@@ -67,8 +67,6 @@ wsServer.on("connection", (socket) => {
     // socket.join() room 생성 및 room으로 들어가는 method
     socket.join(roomName);
     console.log(socket.rooms)
-    // front에서의 showRoom 함수 실행
-    done(countUser(roomName));
     // 모든 방으로 welcome event를 frontend로 전송
     socket.to(roomName).emit("welcome", socket.nickname, countUser(roomName));
     // 모든 sockets으로 room_change event를 frontend로 전송
@@ -96,6 +94,9 @@ wsServer.on("connection", (socket) => {
   socket.on("offer", (offer, roomName) => {
     // send offer to peer B from back
     socket.to(roomName).emit("offer", offer);
+  });
+  socket.on("answer", (answer, roomName) => {
+    socket.to(roomName).emit("answer", answer);
   });
 });
 

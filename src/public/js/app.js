@@ -39,7 +39,7 @@ function handleMessageSubmit(event) {
   input.value = "";
 }
 // room이 생성 되고 들어갔을 때 UI
-async function showRoom(count) {
+async function showRoomInitCall(count) {
   nickName.hidden = true;
   enterRoom.hidden = true;
   room.hidden = false;
@@ -53,7 +53,7 @@ async function showRoom(count) {
   form.addEventListener("submit", handleMessageSubmit);
 }
 // "enter_room" event 실행 함수
-function handleEnterRoom(event) {
+async function handleEnterRoom(event) {
   event.preventDefault();
   const input = enterForm.querySelector("input");
   // socket.emit() // emit : 방출하다.
@@ -61,11 +61,8 @@ function handleEnterRoom(event) {
   // argument2 : object (JSON.stringify() 생략)
   // argument3 : function
   // n개의 argument를 보낼 수 있다.
-  socket.emit(
-    "enter_room", 
-    input.value, 
-    showRoom
-  );
+  await showRoomInitCall(input.value);
+  socket.emit("enter_room", input.value);
   roomName = input.value;
   input.value = "";
 }
@@ -267,6 +264,15 @@ function makeConnection() {
 // peer B
 // get offer event from server
 // front peer A (send offer event1) -> server (get offer event1, send offer event2) -> front peer B (get offer event2)
-socket.on("offer", (offer) => {
-  console.log(offer);
+socket.on("offer", async (offer) => {
+  myPeerConnection.setRemoteDescription(offer);
+  const answer = await myPeerConnection.createAnswer();
+  myPeerConnection.setLocalDescription(answer);
+  // send answer event to server
+  socket.emit("answer", answer, roomName);
+});
+// peer A
+// get answer event from server
+socket.on("answer", (answer) => {
+  myPeerConnection.setRemoteDescription(answer);
 });
