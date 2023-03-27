@@ -92,6 +92,11 @@ wsServer.on("connection", (socket) => {
     // frontend 있는 마지막 함수 실행
     done();
   });
+  // frontend에서 offer event를 listen (get offer from peer A)
+  socket.on("offer", (offer, roomName) => {
+    // send offer to peer B from back
+    socket.to(roomName).emit("offer", offer);
+  });
 });
 
 // listen sever

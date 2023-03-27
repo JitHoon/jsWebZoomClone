@@ -39,13 +39,15 @@ function handleMessageSubmit(event) {
   input.value = "";
 }
 // room이 생성 되고 들어갔을 때 UI
-function showRoom(count) {
+async function showRoom(count) {
   nickName.hidden = true;
   enterRoom.hidden = true;
   room.hidden = false;
   call.hidden = false;
   const h3 = room.querySelector("h3");
   h3.innerText = `Room ${roomName} (${count})`;
+  await getMedia();
+  makeConnection();
   // room안에서 새로운 message를 submit했을 떄 handleMessageSubmit 함수 실행
   const form = room.querySelector("form");
   form.addEventListener("submit", handleMessageSubmit);
@@ -100,10 +102,17 @@ nickName.addEventListener("submit", handleNickname);
 // enterRoom btn EventListener
 enterForm.addEventListener("submit", handleEnterRoom);
 // backend에서 전송된 welcome event 받아 addMessage 함수 실행
-socket.on("welcome", (user, newCount) => {
+socket.on("welcome", async (user, newCount) => {
   const h3 = room.querySelector("h3");
   h3.innerText = `Room ${roomName} (${newCount})`;
   addMessage(`${user} arrived!`);
+  // peer A
+  // create offer
+  const offer = await myPeerConnection.createOffer();
+  // 생성한 offer를 바탕으로 myPeerConnection에 offer를 구성하는 method
+  myPeerConnection.setLocalDescription(offer);
+  // send offer to server from front
+  socket.emit("offer", offer, roomName);
 });
 // backend에서 전송된 bye event 받아 addMessage 함수 실행
 socket.on("bye", (user, newCount) => {
@@ -200,7 +209,6 @@ async function getMedia(deviceId) {
     console.log(e);
   }
 }
-getMedia();
 // 음소가 on off hadle
 function handleMuteClick() {
   // .getUserMedia() 를 통해 가져온 vaudio의 track을 가져와 enabled 속성 변경
@@ -244,3 +252,21 @@ muteBtn.addEventListener("click", handleMuteClick);
 cameraBtn.addEventListener("click", handleCameraClick);
 // select html element 의 event는 input
 camerasSelect.addEventListener("input", handleCameraChange);
+
+// web RTC code
+// RTCPeerConnection() 정보 저장
+let myPeerConnection;
+// peer connection 생성
+function makeConnection() {
+  myPeerConnection = new RTCPeerConnection();
+	// 기존 stream의 track data들을 peer connection에 전송
+  myStream
+    .getTracks()
+    .forEach((track) => myPeerConnection.addTrack(track, myStream));
+}
+// peer B
+// get offer event from server
+// front peer A (send offer event1) -> server (get offer event1, send offer event2) -> front peer B (get offer event2)
+socket.on("offer", (offer) => {
+  console.log(offer);
+});
