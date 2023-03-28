@@ -243,6 +243,16 @@ async function handleCameraChange() {
     myStream.getAudioTracks().forEach((track) => (track.enabled = true));
   }
   await getMedia(camerasSelect.value);
+  if (myPeerConnection) {
+		// peer A에 있는 myStream에서 바뀐 후 video(camera)를 가져옴
+    const videoTrack = myStream.getVideoTracks()[0];
+		// peerB에 있는 sender에서 설정된 바뀌기 전 video(camera) 가져오기
+    const videoSender = myPeerConnection
+      .getSenders()
+      .find((sender) => sender.track.kind === "video");
+		// videoSender를 videoTrack으로 변경하기
+    videoSender.replaceTrack(videoTrack);
+  }
 }
 // 카메라 on off, 음소거 on, off click event
 muteBtn.addEventListener("click", handleMuteClick);
