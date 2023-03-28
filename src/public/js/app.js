@@ -265,11 +265,23 @@ camerasSelect.addEventListener("input", handleCameraChange);
 let myPeerConnection;
 // peer connection 생성
 function makeConnection() {
-  myPeerConnection = new RTCPeerConnection();
+  myPeerConnection = new RTCPeerConnection({
+    iceServers: [
+      {
+        urls: [
+          "stun:stun.l.google.com:19302",
+          "stun:stun1.l.google.com:19302",
+          "stun:stun2.l.google.com:19302",
+          "stun:stun3.l.google.com:19302",
+          "stun:stun4.l.google.com:19302",
+        ],
+      },
+    ],
+  });
   // offer, answer 교환이 일어난 후 icecandidate event 시작
   myPeerConnection.addEventListener("icecandidate", handleIce);
   // offer, answer, icecandidate 교환이 일어난 후 addstream event 시작
-  myPeerConnection.addEventListener("addstream", handleAddStream);
+  myPeerConnection.addEventListener("track", handleAddStream);
 	// 기존 stream의 track data들을 peer connection에 전송
   myStream
     .getTracks()
@@ -304,5 +316,5 @@ socket.on("ice", (ice) => {
 // icecandidate event는 양방향으로 전송된다.
 function handleAddStream(data) {
   const peerFace = document.getElementById("peerFace");
-  peerFace.srcObject = data.stream;
+  peerFace.srcObject = data.streams[0];
 }
