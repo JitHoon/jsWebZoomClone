@@ -39,13 +39,7 @@ function handleMessageSubmit(event) {
   input.value = "";
 }
 // room이 생성 되고 들어갔을 때 UI
-async function showRoomInitCall(count) {
-  nickName.hidden = true;
-  enterRoom.hidden = true;
-  room.hidden = false;
-  call.hidden = false;
-  const h3 = room.querySelector("h3");
-  h3.innerText = `Room ${roomName} (${count})`;
+async function showRoomInitCall() {
   await getMedia();
   makeConnection();
   // room안에서 새로운 message를 submit했을 떄 handleMessageSubmit 함수 실행
@@ -61,9 +55,15 @@ async function handleEnterRoom(event) {
   // argument2 : object (JSON.stringify() 생략)
   // argument3 : function
   // n개의 argument를 보낼 수 있다.
-  await showRoomInitCall(input.value);
+  await showRoomInitCall();
   socket.emit("enter_room", input.value);
   roomName = input.value;
+  nickName.hidden = true;
+  enterRoom.hidden = true;
+  room.hidden = false;
+  call.hidden = false;
+  const h3 = room.querySelector("h3");
+  h3.innerText = `Room ${roomName}`;
   input.value = "";
 }
 // changeNickname UI
